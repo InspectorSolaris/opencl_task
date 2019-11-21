@@ -1,25 +1,68 @@
-#include "complex.h"
+typedef double2 complex;
 
-#define Pi 3.141592653589793238462643383279502884L
-
-unsigned long long Lg2N
+complex Add
 (
-	unsigned long long n
+	const complex * larg,
+	const complex * rarg
 )
 {
-	unsigned long long lg_n = 0;
+	complex res = (complex)(larg->x + rarg->x, larg->y + rarg->y);
 
-	while((1 << lg_n) < n)
-	{
-		++lg_n;
-	}
+	return res;
+}
 
-	return lg_n;
+complex Sub
+(
+	const complex * larg,
+	const complex * rarg
+)
+{
+	complex res = (complex)(larg->x - rarg->x, larg->y - rarg->y);
+
+	return res;
+}
+
+complex Mul
+(
+	const complex * larg,
+	const complex * rarg
+)
+{
+	long double a = larg->x;
+	long double b = larg->y;
+	long double c = rarg->x;
+	long double d = rarg->y;
+
+	long double x = a * c - b * d;
+	long double y = b * c + a * d;
+
+	complex res = (complex)(x, y);
+
+	return res;
+}
+
+complex Div
+(
+	const complex * larg,
+	const complex * rarg
+)
+{
+	long double a = larg->x;
+	long double b = larg->y;
+	long double c = rarg->x;
+	long double d = rarg->y;
+
+	long double x = (a * c + b * d) / (c * c + d * d);
+	long double y = (b * c - a * d) / (c * c + d * d);
+
+	complex res = (complex)(x, y);
+
+	return res;
 }
 
 unsigned long long RevBits
 (
-	unsigned long long n,
+	unsigned long long x,
 	unsigned long long lg_n
 )
 {
@@ -27,7 +70,7 @@ unsigned long long RevBits
 
 	for(unsigned long long i = 0; i < lg_n; ++i)
 	{
-		if(n & (1 << i))
+		if(x & (1UL << i))
 		{
 			rev |= 1 << (lg_n - 1 - i);
 		}
@@ -36,72 +79,75 @@ unsigned long long RevBits
 	return rev;
 }
 
-complex BinaryPow
+complex Pow
 (
-	complex & n,
+	const complex * n,
 	unsigned long long x
 )
 {
-	if(x == 0) return {1, 0};
-	else if(x == 1) return n;
-	else if(x % 2) return BinaryPow(n, x - 1) * n;
-	else
-	{
-		complex a = BinaryPow(n, x / 2);
+	complex pow = (complex)(1, 0);
 
-		return a * a;
+	for(unsigned long long int i = 0; i < x; ++i)
+	{
+		pow = Mul(&pow, n);
 	}
+
+	return pow;
 }
 
 __kernel void DFT_CL
 (
-	__global const unsigned long long int size,
-	__global const complex * arr_global,
-	__global const bool invert
+	__constant const unsigned long long int * n,
+	__constant const unsigned long long int * lg_n,
+	__global complex * arr,
+	__constant const int * inv
 )
 {
-	__local const unsigned long long int n = size;
-	__local const unsigned long long int lg_n = Lg2N(n);
-	__local const complex * a = arr_global;
-	__local const bool inv = invert;
+	const unsigned long long int private_lg_n = *lg_n;
+	unsigned long long int ind = get_global_id(0);
+	unsigned long long int rev_ind = RevBits(ind, private_lg_n);
 
-	__local complex * arr = new complex[n];
-	
-	unsigned long long ind = get_global_id(0);
-	unsigned long long rev_ind = RevBits(ind);
-
-	if(ind < rev_ind)
+	if(rev_ind < ind)
 	{
-		arr[ind] = a[rev_ind];
+		const complex a = arr[ind];
+
+		arr[ind] = arr[rev_ind];
+		arr[rev_ind] = a;
 	}
 
-	for(unsigned long long len = 2; len <= n; len <<= 1)
+	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	for(unsigned long long len = 2; len <= *n; len <<= 1)
 	{
-		long double ang = 2 * Pi / len * (inv ? -1 : +1);
+		const long double ang = 2 / len * (inv ? +1 : -1);
 
-		__local complex wlen = {cos(ang), sin(ang)};
+		const complex wlen = (complex)(cospi((double)ang), sinpi((double)ang));
 
-		for(unsigned long long int i = 0; i < n; i += len)
+		if(ind / (len / 2) % 2 == 0)
 		{
-			if(i <= ind && ind < i + len / 2)
-			{
-				complex w = BinaryPow(wlen, ind - i);
+			const complex w = Pow(&wlen, ind % (len / 2));
+			const complex x = arr[ind + len / 2];
 
-				complex u = arr[i + ind];
-				complex v = arr[i + ind + len / 2] * w;
+			const complex u = arr[ind];
+			const complex v = Mul(&x, &w);
 
-				arr[i + ind] = u + v;
-				arr[i + ind + len / 2] = u - v;
-			}
+			const complex a = Add(&u, &v);
+			const complex b = Sub(&u, &v);
+
+			//arr[ind] = Add(&u, &v);
+			//arr[ind + len / 2] = Sub(&u, &v);
 		}
+
+		barrier(CLK_GLOBAL_MEM_FENCE);
 	}
 
-	if(inv)
+	if(*inv)
 	{
-		arr[ind] /= n;
-	}
+		const complex a = arr[ind];
+		const complex b = (complex)(*n, 0);
 
-	a[rev_ind] = arr[ind];
+		//arr[ind] = Div(&a, &b);
+	}
 
 	return;
 }

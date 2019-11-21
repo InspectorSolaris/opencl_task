@@ -24,6 +24,12 @@
     <ClCompile Include="src\cpp\complex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cpp\print.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpp\operations.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="io\i.io" />
@@ -35,6 +41,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\h\complex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\h\print.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\h\operations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

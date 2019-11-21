@@ -3,44 +3,44 @@
 
 typedef struct
 {
-	double real;
-	double imag;
+	float real;
+	float imag;
 } complex;
 
-complex & operator+
+complex operator+
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 );
 
-complex & operator-
+complex operator-
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 );
 
-complex & operator*
+complex operator*
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 );
 
-complex & operator/
+complex operator/
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 );
 
-complex & operator*=
+void operator*=
 (
 	complex & larg,
-	complex & rarg
+	const complex & rarg
 );
 
-complex & operator/=
+void operator/=
 (
 	complex & larg,
-	complex & rarg
+	const complex & rarg
 );
 
 #endif // !_COMPLEX_H_

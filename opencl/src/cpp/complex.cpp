@@ -1,81 +1,83 @@
 #include "complex.h"
 
-complex & operator+
+complex operator+
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 )
 {
-	larg.real += rarg.real;
-	larg.imag += rarg.imag;
+	complex res = {larg.real + rarg.real, larg.imag + rarg.imag};
 
-	return larg;
+	return res;
 }
 
-complex & operator-
+complex operator-
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 )
 {
-	larg.real -= rarg.real;
-	larg.imag -= rarg.imag;
+	complex res = {larg.real - rarg.real, larg.imag - rarg.imag};
 
-	return larg;
+	return res;
 }
 
-complex & operator*
+complex operator*
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 )
 {
-	double a = larg.real;
-	double b = larg.imag;
-	double c = rarg.real;
-	double d = rarg.imag;
+	float a = larg.real;
+	float b = larg.imag;
+	float c = rarg.real;
+	float d = rarg.imag;
 
-	double real = a * c - b * d;
-	double imag = b * c + a * d;
+	float real = a * c - b * d;
+	float imag = b * c + a * d;
 
-	larg = {real, imag};
+	complex res = {real, imag};
 
-	return larg;
+	return res;
 }
 
-complex & operator/
+complex operator/
 (
-	complex & larg,
-	complex & rarg
+	const complex & larg,
+	const complex & rarg
 )
 {
-	double a = larg.real;
-	double b = larg.imag;
-	double c = rarg.real;
-	double d = rarg.imag;
+	float a = larg.real;
+	float b = larg.imag;
+	float c = rarg.real;
+	float d = rarg.imag;
 
-	double real = (a * c + b * d) / (c * c + d * d);
-	double imag = (b * c - a * d) / (c * c + d * d);
+	float real = (a * c + b * d) / (c * c + d * d);
+	float imag = (b * c - a * d) / (c * c + d * d);
 
-	larg = {real, imag};
+	complex res = {real, imag};
 
-	return larg;
+	return res;
 }
 
-complex & operator*=
+void operator*=
 (
 	complex & larg,
-	complex & rarg
+	const complex & rarg
 )
 {
-	return larg * rarg;
+	larg = larg * rarg;
+
+	return;
 }
 
-complex & operator/=
+void operator/=
 (
 	complex & larg,
-	complex & rarg
+	const complex & rarg
 )
 {
-	return larg / rarg;
+	larg = larg / rarg;
+
+	return;
 }

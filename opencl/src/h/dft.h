@@ -5,21 +5,36 @@
 #include <cmath>
 #include <intrin.h>
 #include <CL/cl.h>
+#include <omp.h>
 
 #include "complex.h"
 
 void DFT_Base
 (
-	unsigned long long int size,
-	complex * arr,
-	bool invert
+	const unsigned long long int size,
+	complex * const arr,
+	const bool invert = false
 );
 
 void DFT_AVX
 (
-	unsigned long long int size,
-	complex * arr,
-	bool invert
+	const unsigned long long int size,
+	complex * const arr,
+	const bool invert = false
+);
+
+void DFT_MP
+(
+	const unsigned long long int size,
+	complex * const arr,
+	const bool invert = false
+);
+
+void DFT_CL
+(
+	const unsigned long long int size,
+	complex * const arr,
+	const bool invert = false
 );
 
 #endif // !_DFT_H_
