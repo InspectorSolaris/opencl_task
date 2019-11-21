@@ -31,13 +31,13 @@ complex operator/
 	const complex & rarg
 );
 
-void operator*=
+complex & operator*=
 (
 	complex & larg,
 	const complex & rarg
 );
 
-void operator/=
+complex & operator/=
 (
 	complex & larg,
 	const complex & rarg

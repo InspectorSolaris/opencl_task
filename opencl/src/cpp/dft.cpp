@@ -6,8 +6,7 @@ constexpr long double Pi = 3.141592653589793238462643383279502884L;
 void DFT_Base
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert
+	complex * const arr
 )
 {
 	const const unsigned long long int n = size;
@@ -31,7 +30,7 @@ void DFT_Base
 
 	for(unsigned long long int len = 2; len <= n; len <<= 1ULL)
 	{
-		const long double ang = 2 * Pi / len * (invert ? +1 : -1);
+		const long double ang = 2 * Pi / len * -1;
 
 		const complex wlen = {cos(ang), sin(ang)};
 
@@ -52,23 +51,13 @@ void DFT_Base
 		}
 	}
 
-	if(invert)
-	{
-		for(unsigned long long int i = 0; i < n; ++i)
-		{
-			arr[i].real /= n;
-			arr[i].imag /= n;
-		}
-	}
-
 	return;
 }
 
 void DFT_AVX
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert
+	complex * const arr
 )
 {
 	const unsigned long long int n = size;
@@ -92,7 +81,7 @@ void DFT_AVX
 
 	for(unsigned long long int len = 2; len <= n; len <<= 1ULL)
 	{
-		const long double ang = 2 * Pi / len * (invert ? +1 : -1);
+		const long double ang = 2 * Pi / len * -1;
 		
 		const complex wlen = {cos(ang), sin(ang)};
 
@@ -100,62 +89,78 @@ void DFT_AVX
 		{
 			complex w = {1, 0};
 
+			w /= wlen;
+
 			for(unsigned long long int j = 0; j < len / 2; j += 4)
 			{
-				double u_real[4] = {0, 0, 0, 0};
-				double u_imag[4] = {0, 0, 0, 0};
-				double v_real[4] = {0, 0, 0, 0};
-				double v_imag[4] = {0, 0, 0, 0};
+				//const complex u = arr[i + j];
+				//const complex v = arr[i + j + len / 2] * w;
 
-				for(unsigned long long int k = 0; k < 4 && j + k < len / 2; ++k)
+				//arr[i + j] = u + v;
+				//arr[i + j + len / 2] = u - v;
+
+				//w *= wlen;
+
+				const unsigned long long int k = std::min(4ULL, len / 2 - j);
+
+				const	__m256 u_vec = _mm256_load_ps((const float *)(arr + i + j));
+						__m256 v_vec = _mm256_load_ps((const float *)(arr + i + j + len / 2));
+				const	__m256 w_vec = _mm256_setr_ps
+				(
+					(w *= wlen).real,
+					(w).imag,
+					(w *= wlen).real,
+					(w).imag,
+					(w *= wlen).real,
+					(w).imag,
+					(w *= wlen).real,
+					(w).imag
+				);
+
+				v_vec = _mm256_permute_ps
+				(
+					_mm256_hadd_ps
+					(
+						_mm256_mul_ps
+						(
+							_mm256_mul_ps
+							(
+								v_vec,
+								w_vec
+							),
+							_mm256_setr_ps
+							(
+								+1.0,
+								-1.0,
+								+1.0,
+								-1.0,
+								+1.0,
+								-1.0,
+								+1.0,
+								-1.0
+							)
+						),
+						_mm256_mul_ps
+						(
+							v_vec,
+							_mm256_permute_ps
+							(
+								w_vec,
+								0b10110001
+							)
+						)
+					),
+					0b11011000
+				);
+
+				const float * const ans1 = (const float *)&_mm256_add_ps(u_vec, v_vec);
+				const float * const ans2 = (const float *)&_mm256_sub_ps(u_vec, v_vec);
+
+				for(unsigned long long int x = 0; x < k; ++x)
 				{
-					u_real[k] = arr[i + j + k].real;
-					u_imag[k] = arr[i + j + k].imag;
-					v_real[k] = (arr[i + j + k + len / 2] * w).real;
-					v_imag[k] = (arr[i + j + k + len / 2] * w).imag;
-
-					w *= wlen;
+					arr[i + j + x]				= {ans1[2 * x + 0], ans1[2 * x + 1]};
+					arr[i + j + x + len / 2]	= {ans2[2 * x + 0], ans2[2 * x + 1]};
 				}
-
-				const __m256d u_real_vec = _mm256_load_pd(u_real);
-				const __m256d u_imag_vec = _mm256_load_pd(u_imag);
-				const __m256d v_real_vec = _mm256_load_pd(v_real);
-				const __m256d v_imag_vec = _mm256_load_pd(v_imag);
-
-				const double * const a1_real = (double *)&_mm256_add_pd(u_real_vec, v_real_vec);
-				const double * const a1_imag = (double *)&_mm256_add_pd(u_imag_vec, v_imag_vec);
-				const double * const a2_real = (double *)&_mm256_sub_pd(u_real_vec, v_real_vec);
-				const double * const a2_imag = (double *)&_mm256_sub_pd(u_imag_vec, v_imag_vec);
-
-				for(unsigned long long int k = 0; k < 4 && j + k < len / 2; ++k)
-				{
-					arr[i + j + k]				= {a1_real[k], a1_imag[k]};
-					arr[i + j + k + len / 2]	= {a2_real[k], a2_imag[k]};
-				}
-			}
-		}
-	}
-
-	if(invert)
-	{
-		for(unsigned long long int i = 0; i < n; i += 4)
-		{
-			double buffer_a_real[4] = {0, 0, 0, 0};
-			double buffer_a_imag[4] = {0, 0, 0, 0};
-
-			for(unsigned long long int j = 0; j < 4 && i + j < n; ++j)
-			{
-				buffer_a_real[j] = arr[i + j].real;
-				buffer_a_imag[j] = arr[i + j].imag;
-			}
-
-			const double * const a_real = (double *)&_mm256_div_pd(_mm256_load_pd(buffer_a_real), _mm256_set1_pd((double)n));
-			const double * const a_imag = (double *)&_mm256_div_pd(_mm256_load_pd(buffer_a_imag), _mm256_set1_pd((double)n));
-
-			for(unsigned long long int j = 0; j < 4 && i + j < n; ++j)
-			{
-				arr[i + j].real = a_real[j];
-				arr[i + j].imag = a_imag[j];
 			}
 		}
 	}
@@ -166,12 +171,13 @@ void DFT_AVX
 void DFT_MP
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert
+	complex * const arr
 )
 {
 	const unsigned long long int n = size;
 	const unsigned long long int lg_n = Lg2N(n);
+
+	complex * cpow = new complex[n / 2];
 
 #pragma omp parallel for
 	for(long long int i = 0; i < n; ++i)
@@ -186,17 +192,24 @@ void DFT_MP
 
 	for(unsigned long long int len = 2; len <= n; len <<= 1ULL)
 	{
-		const long double ang = 2 * Pi / len * (invert ? +1 : -1);
+		const long double ang = 2 * Pi / len * -1;
 
 		const complex wlen = {cos(ang), sin(ang)};
 
-		for(unsigned long long int i = 0; i < n; i += len)
+	#pragma omp parallel for
+		for(long long int i = 0; i < len / 2; ++i)
 		{
-#pragma omp parallel for
+			cpow[i] = Pow(wlen, i);
+		}
+		
+	#pragma omp parallel for
+		for(long long int i = 0; i < n; i += len)
+		{
+		#pragma omp parallel for
 			for(long long int j = 0; j < len / 2; ++j)
 			{
 				const complex u = arr[i + j];
-				const complex v = arr[i + j + len / 2] * Pow(wlen, j);
+				const complex v = arr[i + j + len / 2] * cpow[j];
 
 				arr[i + j] = u + v;
 				arr[i + j + len / 2] = u - v;
@@ -204,15 +217,7 @@ void DFT_MP
 		}
 	}
 
-	if(invert)
-	{
-#pragma omp parallel for
-		for(long long int i = 0; i < n; ++i)
-		{
-			arr[i].real /= n;
-			arr[i].imag /= n;
-		}
-	}
+	delete[] cpow;
 
 	return;
 }

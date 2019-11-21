@@ -60,7 +60,7 @@ complex operator/
 	return res;
 }
 
-void operator*=
+complex & operator*=
 (
 	complex & larg,
 	const complex & rarg
@@ -68,10 +68,10 @@ void operator*=
 {
 	larg = larg * rarg;
 
-	return;
+	return larg;
 }
 
-void operator/=
+complex & operator/=
 (
 	complex & larg,
 	const complex & rarg
@@ -79,5 +79,5 @@ void operator/=
 {
 	larg = larg / rarg;
 
-	return;
+	return larg;
 }

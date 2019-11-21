@@ -30,11 +30,15 @@
     <ClCompile Include="src\cpp\operations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cpp\benchmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="io\i.io" />
     <None Include="io\o.io" />
     <None Include="src\cl\dft.cl" />
+    <None Include="src\cl\dft.what" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\h\dft.h">
@@ -47,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\h\operations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\h\benchmark.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #ifndef _PRINT_H_
 
 #include <ostream>
+#include <vector>
 
 #include "complex.h"
 
@@ -16,17 +17,16 @@ void PrintString
 	std::ostream & stream
 );
 
-void PrintComplex
+std::ostream & operator<<
 (
-	complex & z,
-	std::ostream & stream
-);
+	std::ostream & stream,
+	const complex z
+	);
 
-void PrintComplexArray
+std::ostream & operator<<
 (
-	unsigned long long int size,
-	complex * arr,
-	std::ostream & stream
-);
+	std::ostream & stream,
+	const std::vector<complex> & vec
+	);
 
 #endif // !_PRINT_H_

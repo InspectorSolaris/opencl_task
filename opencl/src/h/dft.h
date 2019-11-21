@@ -12,29 +12,19 @@
 void DFT_Base
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert = false
+	complex * const arr
 );
 
 void DFT_AVX
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert = false
+	complex * const arr
 );
 
 void DFT_MP
 (
 	const unsigned long long int size,
-	complex * const arr,
-	const bool invert = false
-);
-
-void DFT_CL
-(
-	const unsigned long long int size,
-	complex * const arr,
-	const bool invert = false
+	complex * const arr
 );
 
 #endif // !_DFT_H_

@@ -22,30 +22,27 @@ void PrintString
 	return;
 }
 
-void PrintComplex
+std::ostream & operator<<
 (
-	complex & z,
-	std::ostream & stream
-)
+	std::ostream & stream,
+	const complex z
+	)
 {
-	stream << "(" << z.real << "," << z.imag << ") ";
+	stream << z.real << std::showpos << z.imag << std::noshowpos << 'i';
 
-	return;
+	return stream;
 }
 
-void PrintComplexArray
+std::ostream & operator<<
 (
-	unsigned long long int size,
-	complex * arr,
-	std::ostream & stream
-)
+	std::ostream & stream,
+	const std::vector<complex> & vec
+	)
 {
-	for(unsigned long long int i = 0; i < size; ++i)
+	for(unsigned long long int i = 0; i < vec.size(); ++i)
 	{
-		PrintComplex(arr[i], stream);
+		stream << vec[i] << ' ';
 	}
 
-	stream << '\n';
-
-	return;
+	return stream;
 }

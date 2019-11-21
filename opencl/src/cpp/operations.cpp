@@ -1,11 +1,11 @@
 #include "operations.h"
 
-unsigned long long Lg2N
+unsigned long long int Lg2N
 (
-	unsigned long long n
+	unsigned long long int n
 )
 {
-	unsigned long long lg_n = 0;
+	unsigned long long int lg_n = 0;
 
 	while((1ULL << lg_n) < n)
 	{
@@ -15,19 +15,19 @@ unsigned long long Lg2N
 	return lg_n;
 }
 
-unsigned long long RevBits
+unsigned long long int RevBits
 (
-	unsigned long long x,
-	unsigned long long lg_n
+	unsigned long long int x,
+	unsigned long long int lg_n
 )
 {
-	int rev = 0;
+	unsigned long long int rev = 0;
 
-	for(unsigned long long i = 0; i < lg_n; ++i)
+	for(unsigned long long int i = 0; i < lg_n; ++i)
 	{
 		if(x & (1ULL << i))
 		{
-			rev |= 1 << (lg_n - 1 - i);
+			rev |= 1ULL << (lg_n - 1 - i);
 		}
 	}
 
@@ -37,15 +37,16 @@ unsigned long long RevBits
 complex Pow
 (
 	const complex & n,
-	unsigned long long x
+	unsigned long long int x
 )
 {
-	complex pow = {1, 0};
-
-	for(unsigned long long int i = 0; i < x; ++i)
+	if(x == 0) return {1, 0};
+	else if(x == 1) return n;
+	else if(x % 2) return n * Pow(n, x - 1);
+	else
 	{
-		pow *= n;
-	}
+		complex a = Pow(n, x / 2);
 
-	return pow;
+		return a * a;
+	}
 }
