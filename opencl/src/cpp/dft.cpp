@@ -93,65 +93,63 @@ void DFT_AVX
 
 			for(unsigned long long int j = 0; j < len / 2; j += 4)
 			{
-				//const complex u = arr[i + j];
-				//const complex v = arr[i + j + len / 2] * w;
-
-				//arr[i + j] = u + v;
-				//arr[i + j + len / 2] = u - v;
-
-				//w *= wlen;
-
 				const unsigned long long int k = std::min(4ULL, len / 2 - j);
+
+				for (unsigned long long int x = 0; x < k; ++x)
+				{
+					w *= wlen;
+					arr[i + j + x + len / 2] *= w;
+				}
 
 				const	__m256 u_vec = _mm256_load_ps((const float *)(arr + i + j));
 						__m256 v_vec = _mm256_load_ps((const float *)(arr + i + j + len / 2));
-				const	__m256 w_vec = _mm256_setr_ps
-				(
-					(w *= wlen).real,
-					(w).imag,
-					(w *= wlen).real,
-					(w).imag,
-					(w *= wlen).real,
-					(w).imag,
-					(w *= wlen).real,
-					(w).imag
-				);
+				//const	__m256 w_vec = _mm256_setr_ps
+				//(
+				//	(w *= wlen).real,
+				//	(w).imag,
+				//	(w *= wlen).real,
+				//	(w).imag,
+				//	(w *= wlen).real,
+				//	(w).imag,
+				//	(w *= wlen).real,
+				//	(w).imag
+				//);
 
-				v_vec = _mm256_permute_ps
-				(
-					_mm256_hadd_ps
-					(
-						_mm256_mul_ps
-						(
-							_mm256_mul_ps
-							(
-								v_vec,
-								w_vec
-							),
-							_mm256_setr_ps
-							(
-								+1.0,
-								-1.0,
-								+1.0,
-								-1.0,
-								+1.0,
-								-1.0,
-								+1.0,
-								-1.0
-							)
-						),
-						_mm256_mul_ps
-						(
-							v_vec,
-							_mm256_permute_ps
-							(
-								w_vec,
-								0b10110001
-							)
-						)
-					),
-					0b11011000
-				);
+				//v_vec = _mm256_permute_ps
+				//(
+				//	_mm256_hadd_ps
+				//	(
+				//		_mm256_mul_ps
+				//		(
+				//			_mm256_mul_ps
+				//			(
+				//				v_vec,
+				//				w_vec
+				//			),
+				//			_mm256_setr_ps
+				//			(
+				//				+1.0,
+				//				-1.0,
+				//				+1.0,
+				//				-1.0,
+				//				+1.0,
+				//				-1.0,
+				//				+1.0,
+				//				-1.0
+				//			)
+				//		),
+				//		_mm256_mul_ps
+				//		(
+				//			v_vec,
+				//			_mm256_permute_ps
+				//			(
+				//				w_vec,
+				//				0b10110001
+				//			)
+				//		)
+				//	),
+				//	0b11011000
+				//);
 
 				const float * const ans1 = (const float *)&_mm256_add_ps(u_vec, v_vec);
 				const float * const ans2 = (const float *)&_mm256_sub_ps(u_vec, v_vec);

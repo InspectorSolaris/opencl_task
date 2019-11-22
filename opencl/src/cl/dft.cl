@@ -99,8 +99,7 @@ __kernel void DFT_CL
 (
 	__constant const unsigned long long int * n,
 	__constant const unsigned long long int * lg_n,
-	__global complex * arr,
-	__constant const int * inv
+	__global complex * arr
 )
 {
 	const unsigned long long int private_lg_n = *lg_n;
@@ -119,11 +118,13 @@ __kernel void DFT_CL
 
 	for(unsigned long long len = 2; len <= *n; len <<= 1)
 	{
-		const long double ang = 2 / len * (inv ? +1 : -1);
+		const long double ang = 2 / len * -1;
 
 		const complex wlen = (complex)(cospi((double)ang), sinpi((double)ang));
 
-		if(ind / (len / 2) % 2 == 0)
+		bool calculate = ind / (len / 2) % 2 == 0;
+
+		if(calculate)
 		{
 			const complex w = Pow(&wlen, ind % (len / 2));
 			const complex x = arr[ind + len / 2];
@@ -134,19 +135,11 @@ __kernel void DFT_CL
 			const complex a = Add(&u, &v);
 			const complex b = Sub(&u, &v);
 
-			//arr[ind] = Add(&u, &v);
-			//arr[ind + len / 2] = Sub(&u, &v);
+			arr[ind] = a;
+			arr[ind + len / 2] = b;
 		}
 
 		barrier(CLK_GLOBAL_MEM_FENCE);
-	}
-
-	if(*inv)
-	{
-		const complex a = arr[ind];
-		const complex b = (complex)(*n, 0);
-
-		//arr[ind] = Div(&a, &b);
 	}
 
 	return;
